@@ -1,4 +1,7 @@
 # 定时通知机器人配置说明
+configs目录下添加配置文件, 可以添加多个配置文件, 程序会读取所有配置文件, 同时管理多个机器人的多个任务.  
+修改配置后需要依次按停止按钮和开始按钮, 重新载入任务信息.  
+
 Config.json
 ```json
 {
@@ -7,6 +10,7 @@ Config.json
   "JobList": [
     {
       "desc": "描述",
+      "active": "bool(true|false), 控制任务是否激活",
       "msgtype": "text/markdown/image/file",
       "url": "请求url获得数据",
       "analysis": "text|json",
