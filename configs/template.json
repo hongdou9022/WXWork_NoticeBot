@@ -1,0 +1,28 @@
+{
+  "Bot": "botkey",
+  "JobList": [
+    {
+      "desc": "催收周报",
+      "active": true,
+      "msgtype": "text",
+      "content": "催收周报\uD83D\uDE24",
+      "mentioned_list": [
+        "@all"
+      ],
+      "triggers": {
+        "day_of_week": "fri",
+        "hour": "10-12,14-18"
+      }
+    },
+    {
+      "desc": "催收周报1",
+      "active": false,
+      "msgtype": "image",
+      "file_path": "C:\\周报.png",
+      "triggers": {
+        "day_of_week": "fri",
+        "hour": "10-12,14-18"
+      }
+    }
+  ]
+}
