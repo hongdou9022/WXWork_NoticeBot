@@ -3,7 +3,7 @@
   "JobList": [
     {
       "desc": "催收周报",
-      "active": true,
+      "active": false,
       "msgtype": "text",
       "content": "催收周报\uD83D\uDE24",
       "mentioned_list": [
