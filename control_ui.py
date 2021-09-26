@@ -1,6 +1,6 @@
 from PySide6.QtGui import QIcon, QAction
 from PySide6.QtWidgets import (QApplication, QWidget, QMainWindow, QPushButton, QListWidget,
-                               QMenu, QHBoxLayout, QVBoxLayout, QSystemTrayIcon)
+                               QMenu, QHBoxLayout, QVBoxLayout, QSystemTrayIcon, QMessageBox)
 from about_dialog import AboutDialog
 from notice_bot import NoticeBot
 
@@ -46,6 +46,7 @@ class ControlUI(QMainWindow):
         btn_layout.addWidget(self.__btn_stop)
 
         self.__list_log = QListWidget()
+        self.__list_log.itemDoubleClicked.connect(self.list_log_double_clicked)
         log_layout.addWidget(self.__list_log)
 
         main_layout.addLayout(btn_layout, 1)
@@ -74,6 +75,9 @@ class ControlUI(QMainWindow):
         menu_file.addAction(action_exit)
         action_about = QAction('关于', self, triggered=self.open_about)
         menubar.addAction(action_about)
+
+    def list_log_double_clicked(self, item):
+        QMessageBox.information(self, "Info", item.text())
 
     def open_about(self):
         self.dialog_about = AboutDialog()

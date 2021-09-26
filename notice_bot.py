@@ -108,7 +108,8 @@ class NoticeBot(object):
                         return
                     if 'url' in jobInfo.keys() and 'analysis' not in jobInfo.keys():
                         self.print_log(
-                            '配置文件{}不是一个标准配置, JobList[{}]描述为[{}]中有url但没有analysis'.format(configFile, index, jobInfo['desc']))
+                            '配置文件{}不是一个标准配置, JobList[{}]描述为[{}]中有url但没有analysis'.format(configFile, index,
+                                                                                        jobInfo['desc']))
                         return
                 elif msgtype == 'image' or msgtype == 'file':
                     if 'file_path' not in jobInfo.keys():
@@ -151,7 +152,8 @@ class NoticeBot(object):
                                           second=triggerDict['second'], start_date=triggerDict['start_date'],
                                           end_date=triggerDict['end_date'], timezone=triggerDict['timezone'],
                                           jitter=triggerDict['jitter'])
-                    job = self.__scheduler.add_job(self.job_handle, trigger=trigger, id=jobId, args=[jobId, bot, jobInfo])
+                    job = self.__scheduler.add_job(self.job_handle, trigger=trigger, max_instances=10, id=jobId,
+                                                   args=[jobId, bot, jobInfo])
                     self.__job_list.append(job)
 
     def start(self):
@@ -172,11 +174,16 @@ class NoticeBot(object):
         self.__scheduler.remove_all_jobs()
         self.print_log('结束')
 
+
     def get_url_content(self, content, jobInfo):
+        """
+        :param content:
+        :param jobInfo:
+        :return: error_msg, content
+        """
         response = requests.get(jobInfo['url'])
         if response.status_code != 200:
-            self.print_log('请求失败!!')
-            return None
+            return 'URL请求失败!!', None
         url_content = response.content
         elements = jobInfo['analysis'].split('|')
         try:
@@ -185,8 +192,7 @@ class NoticeBot(object):
                 if elements[1] != '':
                     code = elements[1].split('=')
                     if data[code[0]] != code[1]:
-                        self.print_log('没有取到数据!!')
-                        return None
+                        return 'URL没有取到数据!!', None
                 params = []
                 for i in range(2, len(elements)):
                     param = data
@@ -201,35 +207,44 @@ class NoticeBot(object):
                             for j in range(1, len(index)):
                                 param = param[int(index[j].replace(']', ''))]
                     params.append(param)
-                return content.format(*params)
+                return None, content.format(*params)
             elif elements[0] == 'text':
-                return content.format(url_content)
-        except:
-            self.print_log('配置错误没有取到数据!!')
-            return None
+                return None, content.format(url_content)
+        except Exception as e:
+            return f'URL配置错误没有取到数据, 异常信息: {e}!!', None
 
     def job_handle(self, job_id, bot, job_info):
-        msgtype = job_info['msgtype']
-        if msgtype == 'text' or msgtype == 'markdown':
-            content = job_info['content']
-            if 'url' in job_info.keys():
-                content = self.get_url_content(content, job_info)
-                if content is None:
-                    return
+        try:
+            result = ''
+            msgtype = job_info['msgtype']
+            if msgtype == 'text' or msgtype == 'markdown':
+                content = job_info['content']
+                if 'url' in job_info.keys():
+                    error_msg, content = self.get_url_content(content, job_info)
+                    if error_msg is not None:
+                        self.print_log('job[{}] {} 执行失败! URL错误信息: {}'.format(job_id, job_info['desc'], error_msg))
+                        return
 
-            if msgtype == 'text':
-                mentioned_list = []
-                if 'mentioned_list' in job_info.keys() and isinstance(job_info['mentioned_list'], list):
-                    mentioned_list = job_info['mentioned_list']
-                wxwork_bot.send_text(bot, content, mentioned_list)
+                if msgtype == 'text':
+                    mentioned_list = []
+                    if 'mentioned_list' in job_info.keys() and isinstance(job_info['mentioned_list'], list):
+                        mentioned_list = job_info['mentioned_list']
+                    result = wxwork_bot.send_text(bot, content, mentioned_list)
+                else:
+                    result = wxwork_bot.send_markdown(bot, content)
+            elif msgtype == 'image':
+                result = wxwork_bot.send_image(bot, job_info['file_path'])
+            elif msgtype == 'file':
+                result = wxwork_bot.send_file(bot, job_info['file_path'])
+
+            result = json.loads(result)
+            if result["errcode"] == 0:
+                self.print_log('job[{}] {} 执行完毕!'.format(job_id, job_info['desc']))
             else:
-                wxwork_bot.send_markdown(bot, content)
-        elif msgtype == 'image':
-            wxwork_bot.send_image(bot, job_info['file_path'])
-        elif msgtype == 'file':
-            wxwork_bot.send_file(bot, job_info['file_path'])
-
-        self.print_log('job[{}] {} 执行完毕!'.format(job_id, job_info['desc']))
+                self.print_log('job[{}] {} 执行失败! 错误码: {}, 错误信息: {}.'.format(job_id, job_info['desc'], result["errcode"],
+                                                                            result["errmsg"]))
+        except Exception as e:
+            self.print_log('job[{}] {} 执行异常! 异常信息: {}.'.format(job_id, job_info['desc'], e))
 
     def __del__(self):
         if not self.is_start:

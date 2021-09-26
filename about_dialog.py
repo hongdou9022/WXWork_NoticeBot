@@ -22,7 +22,7 @@ class AboutDialog(QDialog):
         lab_version.setText('version: 0.1')
         lab_version.setAlignment(Qt.AlignCenter)
         lab_author = QLabel()
-        lab_author.setText('作者: Cloud')
+        lab_author.setText('作者: 飘逝的云')
         lab_author.setAlignment(Qt.AlignCenter)
         lab_visit = QLabel()
         lab_visit.setText("<A href='https://github.com/hongdou9022/WXWork_NoticeBot'>"

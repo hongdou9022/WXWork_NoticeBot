@@ -16,6 +16,7 @@ def send_text(bot_key, text, mentioned_list=None):
         data['text']['mentioned_list'] = mentioned_list
     r = requests.post(url, headers=headers, json=data)
     print(r.text)
+    return r.text
 
 
 def send_markdown(bot_key, text):
@@ -28,6 +29,7 @@ def send_markdown(bot_key, text):
     }
     r = requests.post(url, json=data)
     print(r.text)
+    return r.text
 
 
 def send_file(bot_key, file_path):
@@ -44,7 +46,7 @@ def send_file(bot_key, file_path):
     }
     r = requests.post(url, json=data)
     print(r.text)
-
+    return r.text
 
 def send_image(bot_key, file_path):
     with open(file_path, "rb") as f:
@@ -64,3 +66,4 @@ def send_image(bot_key, file_path):
     }
     r = requests.post(url, headers=headers, json=data)
     print(r.text)
+    return r.text
